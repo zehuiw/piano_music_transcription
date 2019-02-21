@@ -4,7 +4,7 @@ import numpy as np
 import os
 import os.path
 import sys
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 # We need to set the random seed so that we get ther same results with the same parameters
 np.random.seed(400)  
@@ -76,43 +76,43 @@ print F
 print '\n Accuracy pre-processed: '
 print A
 
-print "\nCleaning model . . ."
-for a in range(predictions.shape[1]):
-    for j in range(2,predictions.shape[0]-3):
-        if predictions[j-1,a] == 1 and predictions[j,a] == 0 and predictions[j+1,a] == 0 and predictions[j+2,a] == 1:
-            predictions[j,a] = 1
-            predictions[j+1,a] = 1
-        if predictions[j-2,a] == 0 and predictions[j-1,a] == 0 and predictions[j,a] == 1 and predictions[j+1,a] == 1 and predictions[j+2,a] == 0 and predictions[j+3,a] == 0:
-            predictions[j,a] = 0
-            predictions[j+1,a] = 0
-        if predictions[j-1,a] == 0 and predictions[j,a] == 1 and predictions[j+1,a] == 0 and predictions[j+2,a] == 0:
-            predictions[j,a] = 0
-        if predictions[j-1,a] == 1 and predictions[j,a] == 0 and predictions[j+1,a] == 1 and predictions[j+2,a] == 1:
-            predictions[j,a] = 1
+# print "\nCleaning model . . ."
+# for a in range(predictions.shape[1]):
+#     for j in range(2,predictions.shape[0]-3):
+#         if predictions[j-1,a] == 1 and predictions[j,a] == 0 and predictions[j+1,a] == 0 and predictions[j+2,a] == 1:
+#             predictions[j,a] = 1
+#             predictions[j+1,a] = 1
+#         if predictions[j-2,a] == 0 and predictions[j-1,a] == 0 and predictions[j,a] == 1 and predictions[j+1,a] == 1 and predictions[j+2,a] == 0 and predictions[j+3,a] == 0:
+#             predictions[j,a] = 0
+#             predictions[j+1,a] = 0
+#         if predictions[j-1,a] == 0 and predictions[j,a] == 1 and predictions[j+1,a] == 0 and predictions[j+2,a] == 0:
+#             predictions[j,a] = 0
+#         if predictions[j-1,a] == 1 and predictions[j,a] == 0 and predictions[j+1,a] == 1 and predictions[j+2,a] == 1:
+#             predictions[j,a] = 1
 
-print "Calculating accuracy after cleaning. . ."
-np.save('{}predictions_post'.format(weights_dir), predictions)
-TP = np.count_nonzero(np.logical_and( predictions == 1, y == 1 ))
-FN = np.count_nonzero(np.logical_and( predictions == 0, y == 1 ))
-FP = np.count_nonzero(np.logical_and( predictions == 1, y == 0 ))
-if (TP + FN) > 0:
-    R = TP/float(TP + FN)
-    P = TP/float(TP + FP)
-    A = 100*TP/float(TP + FP + FN)
-    if P == 0 and R == 0:
-	F = 0
-    else: 
-	F = 100*2*P*R/(P + R)
-else: 
-    A = 0
-    F = 0
-    R = 0
-    P = 0
+# print "Calculating accuracy after cleaning. . ."
+# np.save('{}predictions_post'.format(weights_dir), predictions)
+# TP = np.count_nonzero(np.logical_and( predictions == 1, y == 1 ))
+# FN = np.count_nonzero(np.logical_and( predictions == 0, y == 1 ))
+# FP = np.count_nonzero(np.logical_and( predictions == 1, y == 0 ))
+# if (TP + FN) > 0:
+#     R = TP/float(TP + FN)
+#     P = TP/float(TP + FP)
+#     A = 100*TP/float(TP + FP + FN)
+#     if P == 0 and R == 0:
+# 	F = 0
+#     else: 
+# 	F = 100*2*P*R/(P + R)
+# else: 
+#     A = 0
+#     F = 0
+#     R = 0
+#     P = 0
 
-print '\n F-measure post-processed: '
-print F
-print '\n Accuracy post-processed: '
-print A
+# print '\n F-measure post-processed: '
+# print F
+# print '\n Accuracy post-processed: '
+# print A
 
 
 main_data = open(weights_dir + "Accuracy.lst", "w")
@@ -120,9 +120,9 @@ main_data.write("R-pre = " + str("%.6f" % R) + "\n")
 main_data.write("P-pre = " + str("%.6f" % P) + "\n")
 main_data.write("A-pre = " + str("%.6f" % A) + "\n")
 main_data.write("F-pre = " + str("%.6f" % F) + "\n")
-main_data.write("R-post = " + str("%.6f" % R) + "\n")
-main_data.write("P-post = " + str("%.6f" % P) + "\n")
-main_data.write("A-post = " + str("%.6f" % A) + "\n")
-main_data.write("F-post = " + str("%.6f" % F) + "\n")
+# main_data.write("R-post = " + str("%.6f" % R) + "\n")
+# main_data.write("P-post = " + str("%.6f" % P) + "\n")
+# main_data.write("A-post = " + str("%.6f" % A) + "\n")
+# main_data.write("F-post = " + str("%.6f" % F) + "\n")
 main_data.close()
 

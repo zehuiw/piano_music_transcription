@@ -4,7 +4,7 @@ import numpy as np
 import os
 import os.path
 import sys
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 # We need to set the random seed so that we get ther same results with the same parameters
 np.random.seed(400)  

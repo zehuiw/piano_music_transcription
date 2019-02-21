@@ -2,9 +2,9 @@ import numpy as np
 import sys
 import os
 import librosa
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from scipy.io import wavfile,savemat
-from python_speech_features import mfcc
+# from python_speech_features import mfcc
 
 
 # Parameters
@@ -19,9 +19,7 @@ length_per_file = 4000000
 
 # Read args
 source_List = sys.argv[1];
-source_WAV = sys.argv[2];
-source_Txt = sys.argv[3];
-out_mat = sys.argv[4];
+# out_mat = sys.argv[2];
 
 # Output .npz
 train2mat = []
@@ -30,8 +28,10 @@ contador = 0
 
 # Get the name of the list
 source_list_split = source_List.split('.')
-source_list_split = source_list_split[0].split('/')
+p1 = '.'.join(source_list_split[:-1])
+source_list_split = p1.split('/')
 list_name = source_list_split[-1]
+print 'list name is: ',list_name
 
 # Open the list
 file_List = open( source_List , "r")
@@ -39,11 +39,16 @@ file_List = open( source_List , "r")
 # Iterate on every file
 for filename in file_List:
 
-    filename_split = filename.split('.')
-
+    # filename_split = filename.split('.')
+    filename_split = os.path.splitext(filename)
+    print "processing " + filename_split[0] + '.wav'
     #### MFCC extraction ####
     # Transform to raw data from wav. Get the sampling rate 2
-    sampling_freq, stereo_vector = wavfile.read(source_WAV + filename_split[0] + '.wav')
+    try:
+        sampling_freq, stereo_vector = wavfile.read(filename_split[0] + '.wav')
+    except:
+        print "wave file err: ", filename_split[0] + '.wav'
+        continue
     win_len = 512/float(sampling_freq)
     #plt.imshow( np.array(np.absolute(cqt_feat)))
     #plt.show()
@@ -61,7 +66,7 @@ for filename in file_List:
 
 
     # Open the align txt labels
-    file = open( source_Txt + filename_split[0] + '.txt' , "r")
+    file = open( filename_split[0] + '.txt' , "r")
     #f = open(out_mat + filename_split[0] + 'label.lst','w')
     # Loop over all the lines 
     for line in file: 
@@ -69,10 +74,10 @@ for filename in file_List:
         if line_split[0] == "OnsetTime":
             print "Preprocessing operations . . ."
         else:
-	    # Get the values from the text
-	    init_range, fin_range, pitch = float(line_split[0]), float(line_split[1]), int(line_split[2])
+        # Get the values from the text
+            init_range, fin_range, pitch = float(line_split[0]), float(line_split[1]), int(line_split[2])
             # Pitch move to 0-87 range
-	    pitch = pitch - 21;
+            pitch = pitch - 21;
             # Get the range indexes
             index_min = np.where(vector_aux >= init_range)
             index_max = np.where(vector_aux - 0.01 > int((fin_range)*100)/float(100))
@@ -102,10 +107,10 @@ for filename in file_List:
         train2mat = np.array(train2mat)
         labels2mat = np.array(labels2mat)
         # Plotting stuff
-        print " Shape of MFCC is " + str(train2mat.shape) + " - Saved in " + out_mat + list_name + '/' + str(contador) + list_name
-        print " Shape of Labels is " + str(labels2mat.shape)  + " - Saved in " + out_mat + list_name + '/' + str(contador) + list_name
-        np.save('{}_X'.format(out_mat + list_name + '/' + str(contador) + list_name ), train2mat)
-        np.save('{}_y'.format(out_mat + list_name + '/' + str(contador) + list_name), labels2mat)
+        print " Shape of MFCC is " + str(train2mat.shape) + " - Saved in "   + list_name + '/' + str(contador) + list_name
+        print " Shape of Labels is " + str(labels2mat.shape)  + " - Saved in " + list_name + '/' + str(contador) + list_name
+        np.save('{}_X'.format( list_name + '/' + str(contador) + list_name ), train2mat)
+        np.save('{}_y'.format(list_name + '/' + str(contador) + list_name), labels2mat)
         contador = contador + 1;
         train2mat = []
         labels2mat = []
@@ -119,10 +124,10 @@ for filename in file_List:
         train2mat = np.array(train2mat)
         labels2mat = np.array(labels2mat)
         # Plotting stuff
-        print " Shape of MFCC is " + str(train2mat.shape)  + " - Saved in " + out_mat + list_name + '/' + str(contador) + list_name
-        print " Shape of Labels is " + str(labels2mat.shape)  + " - Saved in " + out_mat + list_name + '/' + str(contador) + list_name
-        np.save('{}_X'.format(out_mat + list_name + '/' + str(contador) + list_name ), train2mat)
-        np.save('{}_y'.format(out_mat + list_name + '/' + str(contador) + list_name), labels2mat)
+        print " Shape of MFCC is " + str(train2mat.shape)  + " - Saved in " + list_name + '/' + str(contador) + list_name
+        print " Shape of Labels is " + str(labels2mat.shape)  + " - Saved in " + list_name + '/' + str(contador) + list_name
+        np.save('{}_X'.format( list_name + '/' + str(contador) + list_name ), train2mat)
+        np.save('{}_y'.format(list_name + '/' + str(contador) + list_name), labels2mat)
         contador = contador + 1;
         train2mat = []
         labels2mat = []
@@ -144,8 +149,8 @@ plt.colorbar()
 plt.show()
 """
 # Plotting stuff
-print " Shape of MFCC is " + str(train2mat.shape)  + " - Saved in " + out_mat + list_name + '/' + str(contador) + list_name
-print " Shape of Labels is " + str(labels2mat.shape)  + " - Saved in " + out_mat + list_name + '/' + str(contador) + list_name
+print " Shape of MFCC is " + str(train2mat.shape)  + " - Saved in " +  list_name + '/' + str(contador) + list_name
+print " Shape of Labels is " + str(labels2mat.shape)  + " - Saved in "  + list_name + '/' + str(contador) + list_name
 
-np.save('{}_X'.format(out_mat + list_name + '/' + str(contador) + list_name ), train2mat)
-np.save('{}_y'.format(out_mat + list_name + '/' + str(contador) + list_name), labels2mat)
+np.save('{}_X'.format(  list_name + '/' + str(contador) + list_name ), train2mat)
+np.save('{}_y'.format(  list_name + '/' + str(contador) + list_name), labels2mat)
