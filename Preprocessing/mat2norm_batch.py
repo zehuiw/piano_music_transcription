@@ -3,7 +3,10 @@ import sys
 import os
 # import matplotlib.pyplot as plt
 # Read args
-source = sys.argv[1]
+
+# source = sys.argv[1]
+source = ''
+
 train_folder = "train/"
 val_folder = "dev/"
 test_folder = "test/"
