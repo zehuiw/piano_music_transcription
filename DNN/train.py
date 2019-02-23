@@ -73,8 +73,8 @@ def train(data_directory, weights_dir):
     history = History()
     build_model(model)
 
-    checkpointer = ModelCheckpoint(filepath= weights_dir + "weights.hdf5", verbose=1, save_best_only=False)
-    early = EarlyStopping(monitor='val_loss', min_delta=0, patience=40, verbose=1, mode='auto')
+    checkpointer = ModelCheckpoint(filepath= weights_dir + "weights.hdf5", verbose=1, save_best_only=True)
+    early = EarlyStopping(monitor='val_loss', min_delta=0, patience=20, verbose=1, mode='auto')
 
     training_log = open(weights_dir + "Training.log", "w")
     print 'Train . . .'

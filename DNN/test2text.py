@@ -24,7 +24,7 @@ number_classes = 88
 size_samples = 100
 data_directory = sys.argv[1]
 weights_dir = sys.argv[2]
-
+dataset_type = sys.argv[3] #test on train/dev/test
 X = []
 y = []
 
@@ -32,9 +32,11 @@ num_test_batches = len([name for name in os.listdir(data_directory )])/2
 
 print 'Loading test data'
 for i in range(num_test_batches):
-    print "Batching..." + str(i) + "test_X.npy"
-    X_test = np.array(np.load(data_directory + str(i) + "test_X.npy" ))
-    y_test = np.array(np.load(data_directory + str(i) + "test_y.npy" ))
+    x_file_name = dataset_type + "_X.npy"
+    y_file_name = dataset_type + "_y.npy"
+    print "Batching..." + str(i) + x_file_name
+    X_test = np.array(np.load(data_directory + str(i) + x_file_name ))
+    y_test = np.array(np.load(data_directory + str(i) + y_file_name ))
     if i == 0:
         X = X_test
         y = y_test
