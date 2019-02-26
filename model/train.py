@@ -11,7 +11,7 @@ from keras.preprocessing import sequence
 from keras.utils import np_utils
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, LSTM
-from keras.regularizers import l2
+from keras import regularizers
 from keras import callbacks
 from keras.callbacks import History, ModelCheckpoint, EarlyStopping
 import tensorflow as tf
@@ -30,7 +30,16 @@ tf.app.flags.DEFINE_integer('best_accuracy' ,0, 'best acc')
 tf.app.flags.DEFINE_integer('sequence_len', 100, 'rnn sequence length')
 tf.app.flags.DEFINE_float('dropout', 0.2, 'dropout')
 tf.app.flags.DEFINE_string('loss', 'mean_squared_error', 'loss function') # mean_squared_error, binary_crossentropy
+tf.app.flags.DEFINE_float('l2', 0.005, 'l2 regularization')
 
+
+tf.app.flags.DEFINE_integer('window_size', 7, 'window size of cnn')
+tf.app.flags.DEFINE_integer('num_conv_layers', 2, 'number of convolutional layers')
+tf.app.flags.DEFINE_integer('num_filters', 50, 'number of filters per con layer')
+tf.app.flags.DEFINE_integer('num_fc', 2, 'number of fully connected layers')
+tf.app.flags.DEFINE_integer('num_hidden_1', 1000, 'number of hidden units in FC')
+tf.app.flags.DEFINE_integer('num_hidden_2', 200, 'number of hidden units in FC')
+tf.app.flags.DEFINE_integer('pooling_size', 3, 'conv pooling window size')
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -72,27 +81,31 @@ def load_data(data_directory):
 
 def build_dnn_model(model):
     print "Adding 1st layer of {} units".format(FLAGS.number_units)
-    model.add(Dense(FLAGS.number_units, input_shape=(FLAGS.input_size,), kernel_initializer='normal', activation='relu'))
+    model.add(Dense(FLAGS.number_units, input_shape=(FLAGS.input_size,), kernel_initializer='normal', activation='relu',  kernel_regularizer=regularizers.l2(FLAGS.l2)))
     model.add(Dropout(FLAGS.dropout))
     for i in range(FLAGS.number_layers-1):
         print "Adding %d" % (i+2) + "th layer of %d" % FLAGS.number_units + " units"
-        model.add(Dense(FLAGS.number_units, kernel_initializer='normal', activation='relu'))
+        model.add(Dense(FLAGS.number_units, kernel_initializer='normal', activation='relu', kernel_regularizer=regularizers.l2(FLAGS.l2)))
         model.add(Dropout(FLAGS.dropout))
 
     print " Adding classification layer"
-    model.add(Dense(FLAGS.number_classes, kernel_initializer='normal', activation='sigmoid'))
+    model.add(Dense(FLAGS.number_classes, kernel_initializer='normal', activation='sigmoid', kernel_regularizer=regularizers.l2(FLAGS.l2)))
     # Compile model
     model.compile(loss=FLAGS.loss, optimizer='adam', metrics=['accuracy'])
 
+def build_cnn_model(model):
+
+    return
+
 def build_rnn_model(model):
-    model.add(LSTM(FLAGS.number_units, input_shape=(FLAGS.sequence_len, FLAGS.input_size), return_sequences = "True",kernel_initializer='normal', activation='tanh'))
+    model.add(LSTM(FLAGS.number_units, input_shape=(FLAGS.sequence_len, FLAGS.input_size), return_sequences = "True",kernel_initializer='normal', activation='tanh', kernel_regularizer=regularizers.l2(FLAGS.l2)))
     model.add(Dropout(FLAGS.dropout))
     for i in range(FLAGS.number_layers - 1):
         print "Adding {} units".format(str(i + 2) + "layer of" + str(FLAGS.number_units))
-        model.add(LSTM(FLAGS.number_units,return_sequences = "True",kernel_initializer='normal', activation='tanh'))
+        model.add(LSTM(FLAGS.number_units,return_sequences = "True",kernel_initializer='normal', activation='tanh', kernel_regularizer=regularizers.l2(FLAGS.l2)))
         model.add(Dropout(FLAGS.dropout))
     print " Adding classification layer"
-    model.add(Dense(FLAGS.number_classes, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(FLAGS.number_classes, kernel_initializer='normal', activation='relu', kernel_regularizer=regularizers.l2(FLAGS.l2)))
     model.compile(loss=FLAGS.loss, optimizer='adam', metrics=['accuracy'])
 
 
