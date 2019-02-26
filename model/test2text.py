@@ -59,10 +59,10 @@ print "\nCalculating accuracy. . ."
 TP = np.count_nonzero(np.logical_and( predictions == 1, y == 1 ))
 FN = np.count_nonzero(np.logical_and( predictions == 0, y == 1 ))
 FP = np.count_nonzero(np.logical_and( predictions == 1, y == 0 ))
-if (TP + FN) > 0:
-    R = TP/float(TP + FN)
-    P = TP/float(TP + FP)
-    A = 100*TP/float(TP + FP + FN)
+if (TP + FN) > 0.001:
+    R = TP/float(TP + FN + 1e-5)
+    P = TP/float(TP + FP + 1e-5)
+    A = 100*TP/float(TP + FP + FN + 1e-5)
     if P == 0 and R == 0:
 	F = 0
     else: 
