@@ -43,6 +43,21 @@ tf.app.flags.DEFINE_integer('pooling_size', 3, 'conv pooling window size')
 
 FLAGS = tf.app.flags.FLAGS
 
+def slide_cnn_window(X_train):
+    length, feature_length = X_train.shape
+    # print 'before sliding:', X_train.shape
+    padding = np.pad(X_train, ((FLAGS.window_size / 2,FLAGS.window_size / 2), (0,0)), 'constant', constant_values = 0)
+    # print 'padding:', padding.shape
+    for k in range(0, -FLAGS.window_size , -1):
+        tmp = np.roll(padding, k, axis = 0)
+        # print 'after rolling:', tmp.shape
+        if k == 0:
+            X_train = tmp[:length, :]
+        else:
+            X_train = np.concatenate((X_train, tmp[:length, :]), axis = 1)
+        # print 'X_train:', X_train.shape
+    X_train = np.reshape(X_train, (length, -1, feature_length))
+    return X_train
 
 def load_data(data_directory):
     print 'Load validation data...'
@@ -61,7 +76,11 @@ def load_data(data_directory):
             truncation = (X_train.shape[0] // 100) * 100
             X_train = np.reshape(X_train[0:truncation,:], (X_train.shape[0]//FLAGS.sequence_len, FLAGS.sequence_len, X_train.shape[1]))
             truncation = (y_train.shape[0] // 100) * 100
-            y_train = np.reshape(y_train[0:truncation,:], (y_train.shape[0]//FLAGS.sequence_len, FLAGS.sequence_len, y_train.shape[1]))          
+            y_train = np.reshape(y_train[0:truncation,:], (y_train.shape[0]//FLAGS.sequence_len, FLAGS.sequence_len, y_train.shape[1]))
+        if FLAGS.model == 'cnn':
+            X_train = slide_cnn_window(X_train)
+            print 'training X_shape: ', X_train.shape
+
         if i == 0:
             X = X_train
             y = y_train
@@ -76,6 +95,9 @@ def load_data(data_directory):
         truncation = (y_val.shape[0] // 100) * 100
         y_val = np.reshape(y_val[0:truncation,:], (y_val.shape[0]//FLAGS.sequence_len, FLAGS.sequence_len, y_val.shape[1]))
 
+    if FLAGS.model == 'cnn':
+        X_val = slide_cnn_window(X_val)
+        print 'shape of X_val:', X_val.shape
 
     return X_val, y_val, X, y
 
@@ -131,7 +153,8 @@ def train(data_directory, weights_dir):
     training_log.close()
 
 def main():
-    train(FLAGS.data_directory, FLAGS.weights_dir)
+    X_val, y_val, X, y = load_data(FLAGS.data_directory)
+    # train(FLAGS.data_directory, FLAGS.weights_dir)
 
 
 if __name__=="__main__":
