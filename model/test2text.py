@@ -15,6 +15,7 @@ from keras.utils import np_utils
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Activation
 from keras.regularizers import l2
+from train import slide_cnn_window
 
 mini_batch_size, num_epochs = 100, 50
 input_size = 252
@@ -25,6 +26,7 @@ size_samples = 100
 data_directory = sys.argv[1]
 weights_dir = sys.argv[2]
 dataset_type = sys.argv[3] #test on train/dev/test
+model_type = sys.argv[4] #cnn/dnn/rnn
 X = []
 y = []
 
@@ -43,6 +45,8 @@ for i in range(num_test_batches):
     else:
         X = np.concatenate((X,X_test), axis = 0)
         y = np.concatenate((y,y_test), axis = 0)
+    if model_type == 'cnn':
+        X = slide_cnn_window(X)
 
 # Load the model 
 model = load_model(weights_dir + "weights.hdf5")
@@ -59,6 +63,7 @@ print "\nCalculating accuracy. . ."
 TP = np.count_nonzero(np.logical_and( predictions == 1, y == 1 ))
 FN = np.count_nonzero(np.logical_and( predictions == 0, y == 1 ))
 FP = np.count_nonzero(np.logical_and( predictions == 1, y == 0 ))
+print TP, FN, FP
 if (TP + FN) > 0:
     R = TP/float(TP + FN)
     P = TP/float(TP + FP)
