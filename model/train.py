@@ -10,7 +10,7 @@ np.random.seed(400)
 from keras.preprocessing import sequence
 from keras.utils import np_utils
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, LSTM
+from keras.layers import Dense, Dropout, Activation, LSTM, Conv2D, MaxPooling2D, Flatten
 from keras import regularizers
 from keras import callbacks
 from keras.callbacks import History, ModelCheckpoint, EarlyStopping
@@ -30,13 +30,11 @@ tf.app.flags.DEFINE_integer('best_accuracy' ,0, 'best acc')
 tf.app.flags.DEFINE_integer('sequence_len', 100, 'rnn sequence length')
 tf.app.flags.DEFINE_float('dropout', 0.2, 'dropout')
 tf.app.flags.DEFINE_string('loss', 'mean_squared_error', 'loss function') # mean_squared_error, binary_crossentropy
-tf.app.flags.DEFINE_float('l2', 0.005, 'l2 regularization')
+tf.app.flags.DEFINE_float('l2', 0.0, 'l2 regularization')
 
 
 tf.app.flags.DEFINE_integer('window_size', 7, 'window size of cnn')
-tf.app.flags.DEFINE_integer('num_conv_layers', 2, 'number of convolutional layers')
 tf.app.flags.DEFINE_integer('num_filters', 50, 'number of filters per con layer')
-tf.app.flags.DEFINE_integer('num_fc', 2, 'number of fully connected layers')
 tf.app.flags.DEFINE_integer('num_hidden_1', 1000, 'number of hidden units in FC')
 tf.app.flags.DEFINE_integer('num_hidden_2', 200, 'number of hidden units in FC')
 tf.app.flags.DEFINE_integer('pooling_size', 3, 'conv pooling window size')
@@ -56,7 +54,7 @@ def slide_cnn_window(X_train):
         else:
             X_train = np.concatenate((X_train, tmp[:length, :]), axis = 1)
         # print 'X_train:', X_train.shape
-    X_train = np.reshape(X_train, (length, -1, feature_length))
+    X_train = np.reshape(X_train, (length, -1, feature_length, 1))
     return X_train
 
 def load_data(data_directory):
@@ -116,8 +114,24 @@ def build_dnn_model(model):
     model.compile(loss=FLAGS.loss, optimizer='adam', metrics=['accuracy'])
 
 def build_cnn_model(model):
+    model.add(Conv2D(FLAGS.num_filters, kernel_size=(5,25), activation='tanh', input_shape=(FLAGS.window_size, FLAGS.input_size, 1)))
+    model.add(Dropout(FLAGS.dropout))
+    model.add(MaxPooling2D(pool_size=(1, FLAGS.pooling_size)))
 
-    return
+    model.add(Conv2D(FLAGS.num_filters, kernel_size=(3,5), activation='tanh'))
+    model.add(Dropout(FLAGS.dropout))
+    model.add(MaxPooling2D(pool_size=(1, FLAGS.pooling_size)))
+
+    model.add(Flatten())
+    model.add(Dense(FLAGS.num_hidden_1, activation='relu'))
+    model.add(Dropout(FLAGS.dropout))
+    model.add(Dense(FLAGS.num_hidden_2,  activation='relu'))
+    model.add(Dropout(FLAGS.dropout))
+
+    model.add(Dense(FLAGS.number_classes, kernel_initializer='normal', activation='sigmoid', kernel_regularizer=regularizers.l2(FLAGS.l2)))
+
+    model.compile(loss=FLAGS.loss, optimizer='adam', metrics=['accuracy'])
+
 
 def build_rnn_model(model):
     model.add(LSTM(FLAGS.number_units, input_shape=(FLAGS.sequence_len, FLAGS.input_size), return_sequences = "True",kernel_initializer='normal', activation='tanh', kernel_regularizer=regularizers.l2(FLAGS.l2)))
@@ -139,8 +153,12 @@ def train(data_directory, weights_dir):
         build_rnn_model(model)
     elif FLAGS.model == 'dnn':
         build_dnn_model(model)
+    elif FLAGS.model == 'cnn':
+        build_cnn_model(model)
     else:
-        Abort("model name error")
+        sys.exit('aa! errors!')
+
+    print model.summary()
 
     checkpointer = ModelCheckpoint(filepath= weights_dir + "weights.hdf5", verbose=1, save_best_only=True)
     early = EarlyStopping(monitor='val_loss', min_delta=0, patience=20, verbose=1, mode='auto')
@@ -153,9 +171,7 @@ def train(data_directory, weights_dir):
     training_log.close()
 
 def main():
-    X_val, y_val, X, y = load_data(FLAGS.data_directory)
-    # train(FLAGS.data_directory, FLAGS.weights_dir)
-
+    train(FLAGS.data_directory, FLAGS.weights_dir)
 
 if __name__=="__main__":
     main()
