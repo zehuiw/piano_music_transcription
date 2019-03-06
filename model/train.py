@@ -75,9 +75,10 @@ def load_data(data_directory):
             X_train = np.reshape(X_train[0:truncation,:], (X_train.shape[0]//FLAGS.sequence_len, FLAGS.sequence_len, X_train.shape[1]))
             truncation = (y_train.shape[0] // 100) * 100
             y_train = np.reshape(y_train[0:truncation,:], (y_train.shape[0]//FLAGS.sequence_len, FLAGS.sequence_len, y_train.shape[1]))
-        if FLAGS.model == 'cnn':
-            X_train = slide_cnn_window(X_train)
-            print 'training X_shape: ', X_train.shape
+
+        # if FLAGS.model == 'cnn':
+        #     X_train = slide_cnn_window(X_train)
+        #     print 'training X_shape: ', X_train.shape
 
         if i == 0:
             X = X_train
@@ -144,6 +145,19 @@ def build_rnn_model(model):
     model.add(Dense(FLAGS.number_classes, kernel_initializer='normal', activation='relu', kernel_regularizer=regularizers.l2(FLAGS.l2)))
     model.compile(loss=FLAGS.loss, optimizer='adam', metrics=['accuracy'])
 
+# handle training data that cannot fit in memory
+def generator(features, labels, batch_size):
+    # features already padded
+    print 'padded features:', features.shape
+    while True:
+        for i in range(FLAGS.window_size / 2, FLAGS.window_size / 2 + features.shape[0], batch_size):
+            features_batch = features[i - FLAGS.window_size / 2 : i + batch_size + FLAGS.window_size / 2, : ]
+            features_batch = slide_cnn_window(features_batch)
+            # print features_batch.shape
+            features_batch = features_batch[FLAGS.window_size / 2 : - (FLAGS.window_size/ 2), :, :, :]
+            # print 'batch:', features_batch.shape, labels[i : i + batch_size, :].shape
+            # print ' idx:', i, i + batch_size, features_batch.shape, 
+            yield features_batch, labels[i - FLAGS.window_size / 2: i - FLAGS.window_size / 2 + batch_size, :]
 
 def train(data_directory, weights_dir):
     X_val, y_val, X, y = load_data(data_directory)
@@ -158,7 +172,7 @@ def train(data_directory, weights_dir):
     else:
         sys.exit('aa! errors!')
 
-    print model.summary()
+    # print model.summary()
 
     checkpointer = ModelCheckpoint(filepath= weights_dir + "weights.hdf5", verbose=1, save_best_only=True)
     early = EarlyStopping(monitor='val_loss', min_delta=0, patience=20, verbose=1, mode='auto')
@@ -166,7 +180,15 @@ def train(data_directory, weights_dir):
     training_log = open(weights_dir + "Training.log", "w")
     print 'Train . . .'
 
-    save = model.fit(X, y, batch_size=FLAGS.mini_batch_size,epochs = FLAGS.num_epochs,validation_data=(X_val, y_val),verbose=1, callbacks=[checkpointer,early])
+    if (FLAGS.model != 'cnn'): 
+        save = model.fit(X, y, batch_size=FLAGS.mini_batch_size,epochs = FLAGS.num_epochs,validation_data=(X_val, y_val),verbose=1, callbacks=[checkpointer,early])
+    else:
+        # X: (None, feature_len), 
+        # X_val: (None, window_size, feature_len, 1)
+        print 'samples_per_epoch:', X.shape[0] / FLAGS.mini_batch_size
+        padding = np.pad(X, ((FLAGS.window_size / 2,FLAGS.window_size / 2), (0,0)), 'constant', constant_values = 0)
+        save = model.fit_generator(generator(padding, y, FLAGS.mini_batch_size), samples_per_epoch=X.shape[0] / FLAGS.mini_batch_size, epochs=FLAGS.num_epochs, validation_data=(X_val, y_val), verbose=1, callbacks=[checkpointer, early])
+
     training_log.write(str(save.history) + "\n")
     training_log.close()
 
