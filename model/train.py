@@ -6,7 +6,7 @@ import os.path
 import sys
 
 np.random.seed(400)  
-
+from keras.optimizers import Adam
 from keras.preprocessing import sequence
 from keras.utils import np_utils
 from keras.models import Sequential
@@ -31,7 +31,7 @@ tf.app.flags.DEFINE_integer('sequence_len', 100, 'rnn sequence length')
 tf.app.flags.DEFINE_float('dropout', 0.2, 'dropout')
 tf.app.flags.DEFINE_string('loss', 'mean_squared_error', 'loss function') # mean_squared_error, binary_crossentropy
 tf.app.flags.DEFINE_float('l2', 0.0, 'l2 regularization')
-
+tf.app.flags.DEFINE_float('learning_rate', 0.0005, 'lr')
 
 tf.app.flags.DEFINE_integer('window_size', 7, 'window size of cnn')
 tf.app.flags.DEFINE_integer('num_filters', 50, 'number of filters per con layer')
@@ -114,12 +114,12 @@ def build_dnn_model(model):
     # Compile model
     model.compile(loss=FLAGS.loss, optimizer='adam', metrics=['accuracy'])
 
-def build_cnn_model(model):
-    model.add(Conv2D(FLAGS.num_filters, kernel_size=(5,25), activation='tanh', input_shape=(FLAGS.window_size, FLAGS.input_size, 1)))
+def build_cnn_model(model, opt):
+    model.add(Conv2D(FLAGS.num_filters, kernel_size=(5,25), activation='relu', input_shape=(FLAGS.window_size, FLAGS.input_size, 1)))
     model.add(Dropout(FLAGS.dropout))
     model.add(MaxPooling2D(pool_size=(1, FLAGS.pooling_size)))
 
-    model.add(Conv2D(FLAGS.num_filters, kernel_size=(3,5), activation='tanh'))
+    model.add(Conv2D(FLAGS.num_filters, kernel_size=(3,5), activation='relu'))
     model.add(Dropout(FLAGS.dropout))
     model.add(MaxPooling2D(pool_size=(1, FLAGS.pooling_size)))
 
@@ -131,7 +131,7 @@ def build_cnn_model(model):
 
     model.add(Dense(FLAGS.number_classes, kernel_initializer='normal', activation='sigmoid', kernel_regularizer=regularizers.l2(FLAGS.l2)))
 
-    model.compile(loss=FLAGS.loss, optimizer='adam', metrics=['accuracy'])
+    model.compile(loss=FLAGS.loss, optimizer=opt, metrics=['accuracy'])
 
 
 def build_rnn_model(model):
@@ -163,12 +163,13 @@ def train(data_directory, weights_dir):
     X_val, y_val, X, y = load_data(data_directory)
     model = Sequential()
     history = History()
+    opt = Adam(lr=FLAGS.learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-8)
     if FLAGS.model == 'rnn':
         build_rnn_model(model)
     elif FLAGS.model == 'dnn':
         build_dnn_model(model)
     elif FLAGS.model == 'cnn':
-        build_cnn_model(model)
+        build_cnn_model(model, opt)
     else:
         sys.exit('aa! errors!')
 
@@ -179,7 +180,6 @@ def train(data_directory, weights_dir):
 
     training_log = open(weights_dir + "Training.log", "w")
     print 'Train . . .'
-
     if (FLAGS.model != 'cnn'): 
         save = model.fit(X, y, batch_size=FLAGS.mini_batch_size,epochs = FLAGS.num_epochs,validation_data=(X_val, y_val),verbose=1, callbacks=[checkpointer,early])
     else:
