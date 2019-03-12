@@ -9,7 +9,7 @@ np.random.seed(400)
 from keras.optimizers import Adam
 from keras.preprocessing import sequence
 from keras.utils import np_utils
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Activation, LSTM, Conv2D, MaxPooling2D, Flatten
 from keras import regularizers
 from keras import callbacks
@@ -18,7 +18,7 @@ import tensorflow as tf
 
 tf.app.flags.DEFINE_string("data_directory", "../Preprocessing/toy/", "data directory")
 tf.app.flags.DEFINE_string("weights_dir", "../weights/", "weights directory")
-tf.app.flags.DEFINE_string("model", "dnn", 'model type: dnn/rnn/cnn')
+tf.app.flags.DEFINE_string("model", "", 'model type: dnn/rnn/cnn')
 
 tf.app.flags.DEFINE_integer('mini_batch_size', 100, 'mini batch size')
 tf.app.flags.DEFINE_integer('num_epochs' ,200, 'num epochs')
@@ -38,7 +38,7 @@ tf.app.flags.DEFINE_integer('num_filters', 50, 'number of filters per con layer'
 tf.app.flags.DEFINE_integer('num_hidden_1', 1000, 'number of hidden units in FC')
 tf.app.flags.DEFINE_integer('num_hidden_2', 200, 'number of hidden units in FC')
 tf.app.flags.DEFINE_integer('pooling_size', 3, 'conv pooling window size')
-
+tf.app.flags.DEFINE_string('checkpoint','', 'saved model dir') 
 FLAGS = tf.app.flags.FLAGS
 
 def slide_cnn_window(X_train):
@@ -164,14 +164,17 @@ def train(data_directory, weights_dir):
     model = Sequential()
     history = History()
     opt = Adam(lr=FLAGS.learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-8)
-    if FLAGS.model == 'rnn':
-        build_rnn_model(model)
-    elif FLAGS.model == 'dnn':
-        build_dnn_model(model)
-    elif FLAGS.model == 'cnn':
-        build_cnn_model(model, opt)
+    if FLAGS.checkpoint != '':
+        model = load_model(FLAGS.checkpoint + "weights.hdf5")
     else:
-        sys.exit('aa! errors!')
+        if FLAGS.model == 'rnn':
+            build_rnn_model(model)
+        elif FLAGS.model == 'dnn':
+            build_dnn_model(model)
+        elif FLAGS.model == 'cnn':
+            build_cnn_model(model, opt)
+        else:
+            sys.exit('aa! errors!')
 
     # print model.summary()
 
