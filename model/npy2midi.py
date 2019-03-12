@@ -2,11 +2,16 @@ import numpy as np
 import sys
 import os
 import librosa
+import sys
 from scipy.io import savemat
 from midiutil import MIDIFile
 
-matY = np.load('../Preprocessing/dev/0dev_y.npy')
-file = open( 'sample.txt' , "w")
+data_dir = sys.argv[1]
+matY = np.load(data_dir)
+output_dir = sys.argv[2]
+# matY = np.load('../Preprocessing/dev/0dev_y.npy')
+# file = open( 'sample.txt' , "w")
+file = open(output_dir + '.txt', 'w')
 MyMIDI = MIDIFile(1)
 
 
@@ -44,5 +49,6 @@ for col in np.transpose(matY):
 			MyMIDI.addNote(track, channel, pitch, startTime, (len(col) * frame_width - 0.5) / sample_frequence - startTime, volume)
 			file.write("%f, %f, %d\n" % (startTime, (len(col) * frame_width - 0.5) / sample_frequence, pitch))
 file.close()
-with open("sample.mid", "wb") as output_file:
+with open(output_dir + '.mid', 'wb') as output_file:
+# with open("sample.mid", "wb") as output_file:
     MyMIDI.writeFile(output_file)
