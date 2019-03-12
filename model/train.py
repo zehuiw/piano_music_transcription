@@ -115,21 +115,23 @@ def build_dnn_model(model):
     model.compile(loss=FLAGS.loss, optimizer='adam', metrics=['accuracy'])
 
 def build_cnn_model(model, opt):
-    model.add(Conv2D(FLAGS.num_filters, kernel_size=(5,25), activation='relu', input_shape=(FLAGS.window_size, FLAGS.input_size, 1)))
+    model.add(Conv2D(FLAGS.num_filters, kernel_size=(5,25), activation='relu', input_shape=(FLAGS.window_size, FLAGS.input_size, 1), kernel_regularizer=regularizers.l2(FLAGS.l2)))
     model.add(Dropout(FLAGS.dropout))
     model.add(MaxPooling2D(pool_size=(1, FLAGS.pooling_size)))
 
-    model.add(Conv2D(FLAGS.num_filters, kernel_size=(3,5), activation='relu'))
+    model.add(Conv2D(FLAGS.num_filters, kernel_size=(3,5), activation='relu', kernel_regularizer=regularizers.l2(FLAGS.l2)))
     model.add(Dropout(FLAGS.dropout))
     model.add(MaxPooling2D(pool_size=(1, FLAGS.pooling_size)))
 
     model.add(Flatten())
-    model.add(Dense(FLAGS.num_hidden_1, activation='relu'))
-    model.add(Dropout(FLAGS.dropout))
-    model.add(Dense(FLAGS.num_hidden_2,  activation='relu'))
+
+    model.add(Dense(FLAGS.num_hidden_1, activation='relu', kernel_regularizer=regularizers.l2(FLAGS.l2)))
     model.add(Dropout(FLAGS.dropout))
 
-    model.add(Dense(FLAGS.number_classes, kernel_initializer='normal', activation='sigmoid', kernel_regularizer=regularizers.l2(FLAGS.l2)))
+    model.add(Dense(FLAGS.num_hidden_2,  activation='relu', kernel_regularizer=regularizers.l2(FLAGS.l2)))
+    model.add(Dropout(FLAGS.dropout))
+
+    model.add(Dense(FLAGS.number_classes, activation='sigmoid', kernel_regularizer=regularizers.l2(FLAGS.l2)))
 
     model.compile(loss=FLAGS.loss, optimizer=opt, metrics=['accuracy'])
 
