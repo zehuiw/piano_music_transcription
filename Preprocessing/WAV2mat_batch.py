@@ -109,8 +109,8 @@ for filename in file_List:
         # Plotting stuff
         print " Shape of MFCC is " + str(train2mat.shape) + " - Saved in "   + list_name + '/' + str(contador) + list_name
         print " Shape of Labels is " + str(labels2mat.shape)  + " - Saved in " + list_name + '/' + str(contador) + list_name
-        np.save('{}_X'.format( list_name + '/' + str(contador) + list_name ), train2mat)
-        np.save('{}_y'.format(list_name + '/' + str(contador) + list_name), labels2mat)
+        np.save('{}_X'.format( '../script/'  + str(contador) + list_name ), train2mat)
+        np.save('{}_y'.format( '../script/'  + str(contador) + list_name), labels2mat)
         contador = contador + 1;
         train2mat = []
         labels2mat = []
@@ -126,8 +126,8 @@ for filename in file_List:
         # Plotting stuff
         print " Shape of MFCC is " + str(train2mat.shape)  + " - Saved in " + list_name + '/' + str(contador) + list_name
         print " Shape of Labels is " + str(labels2mat.shape)  + " - Saved in " + list_name + '/' + str(contador) + list_name
-        np.save('{}_X'.format( list_name + '/' + str(contador) + list_name ), train2mat)
-        np.save('{}_y'.format(list_name + '/' + str(contador) + list_name), labels2mat)
+        np.save('{}_X'.format( '../script/' + str(contador) + list_name ), train2mat)
+        np.save('{}_y'.format( '../script/' + str(contador) + list_name), labels2mat)
         contador = contador + 1;
         train2mat = []
         labels2mat = []
@@ -149,8 +149,8 @@ plt.colorbar()
 plt.show()
 """
 # Plotting stuff
-print " Shape of MFCC is " + str(train2mat.shape)  + " - Saved in " +  list_name + '/' + str(contador) + list_name
+print " Shape of MFCC is " + str(train2mat.shape)  + " - Saved in " +  '../script/'  + str(contador) + list_name
 print " Shape of Labels is " + str(labels2mat.shape)  + " - Saved in "  + list_name + '/' + str(contador) + list_name
 
-np.save('{}_X'.format(  list_name + '/' + str(contador) + list_name ), train2mat)
-np.save('{}_y'.format(  list_name + '/' + str(contador) + list_name), labels2mat)
+np.save('{}_X'.format(  '../script/'  + str(contador) + list_name ), train2mat)
+np.save('{}_y'.format(  '../script/'  + str(contador) + list_name), labels2mat)
